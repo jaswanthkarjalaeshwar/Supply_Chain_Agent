@@ -1,42 +1,242 @@
 [
   {
-    "sku": "CHIP-001",
-    "name": "Microcontroller Unit A",
-    "supplier": "Taiwan Semiconductor",
-    "stock_units": 1200,
-    "reorder_point": 500,
-    "lead_time_days": 45,
-    "origin_country": "TW",
-    "origin_port": "Kaohsiung"
+    "skuId": "SKU-E001",
+    "name": "Microcontroller Unit ATmega328",
+    "category": "electronics",
+    "currentStock": 1200,
+    "reorderPoint": 500,
+    "leadTimeDays": 45,
+    "supplierId": "SUP-TW-01",
+    "activePoIds": ["PO-20240311", "PO-20240402"]
   },
   {
-    "sku": "BATT-007",
+    "skuId": "SKU-E002",
     "name": "Lithium Battery Pack 48V",
-    "supplier": "Shenzhen PowerCell",
-    "stock_units": 340,
-    "reorder_point": 400,
-    "lead_time_days": 30,
-    "origin_country": "CN",
-    "origin_port": "Shenzhen"
+    "category": "electronics",
+    "currentStock": 340,
+    "reorderPoint": 400,
+    "leadTimeDays": 30,
+    "supplierId": "SUP-CN-07",
+    "activePoIds": ["PO-20240418"]
   },
   {
-    "sku": "SENS-042",
-    "name": "Pressure Sensor Module",
-    "supplier": "Stuttgart MicroTech",
-    "stock_units": 870,
-    "reorder_point": 200,
-    "lead_time_days": 21,
-    "origin_country": "DE",
-    "origin_port": "Hamburg"
+    "skuId": "SKU-E003",
+    "name": "Pressure Sensor Module PSM-200",
+    "category": "electronics",
+    "currentStock": 870,
+    "reorderPoint": 200,
+    "leadTimeDays": 21,
+    "supplierId": "SUP-DE-03",
+    "activePoIds": []
   },
   {
-    "sku": "DISP-015",
-    "name": "7-inch TFT Display",
-    "supplier": "Seoul Display Corp",
-    "stock_units": 90,
-    "reorder_point": 150,
-    "lead_time_days": 28,
-    "origin_country": "KR",
-    "origin_port": "Busan"
+    "skuId": "SKU-E004",
+    "name": "7-inch TFT Display Panel",
+    "category": "electronics",
+    "currentStock": 90,
+    "reorderPoint": 150,
+    "leadTimeDays": 28,
+    "supplierId": "SUP-KR-02",
+    "activePoIds": ["PO-20240415"]
+  },
+  {
+    "skuId": "SKU-E005",
+    "name": "Wi-Fi 6E Module AX210",
+    "category": "electronics",
+    "currentStock": 530,
+    "reorderPoint": 300,
+    "leadTimeDays": 35,
+    "supplierId": "SUP-TW-02",
+    "activePoIds": ["PO-20240408"]
+  },
+  {
+    "skuId": "SKU-E006",
+    "name": "Industrial Power Supply 24V 10A",
+    "category": "electronics",
+    "currentStock": 180,
+    "reorderPoint": 250,
+    "leadTimeDays": 20,
+    "supplierId": "SUP-CN-03",
+    "activePoIds": ["PO-20240420"]
+  },
+  {
+    "skuId": "SKU-E007",
+    "name": "OLED Display 128x64",
+    "category": "electronics",
+    "currentStock": 2200,
+    "reorderPoint": 600,
+    "leadTimeDays": 25,
+    "supplierId": "SUP-CN-11",
+    "activePoIds": []
+  },
+  {
+    "skuId": "SKU-E008",
+    "name": "USB-C Charging Controller IC",
+    "category": "electronics",
+    "currentStock": 450,
+    "reorderPoint": 500,
+    "leadTimeDays": 40,
+    "supplierId": "SUP-TW-04",
+    "activePoIds": ["PO-20240401", "PO-20240419"]
+  },
+  {
+    "skuId": "SKU-E009",
+    "name": "LiDAR Sensor Unit 360°",
+    "category": "electronics",
+    "currentStock": 60,
+    "reorderPoint": 80,
+    "leadTimeDays": 60,
+    "supplierId": "SUP-JP-01",
+    "activePoIds": ["PO-20240310"]
+  },
+  {
+    "skuId": "SKU-E010",
+    "name": "Raspberry Pi Compute Module 4",
+    "category": "electronics",
+    "currentStock": 310,
+    "reorderPoint": 200,
+    "leadTimeDays": 30,
+    "supplierId": "SUP-GB-01",
+    "activePoIds": []
+  },
+  {
+    "skuId": "SKU-A001",
+    "name": "Men's Performance Running Jacket",
+    "category": "apparel",
+    "currentStock": 4500,
+    "reorderPoint": 1000,
+    "leadTimeDays": 90,
+    "supplierId": "SUP-VN-02",
+    "activePoIds": ["PO-20240205"]
+  },
+  {
+    "skuId": "SKU-A002",
+    "name": "Women's Yoga Pants — Black",
+    "category": "apparel",
+    "currentStock": 800,
+    "reorderPoint": 1200,
+    "leadTimeDays": 75,
+    "supplierId": "SUP-BD-01",
+    "activePoIds": ["PO-20240301", "PO-20240410"]
+  },
+  {
+    "skuId": "SKU-A003",
+    "name": "Unisex Fleece Hoodie",
+    "category": "apparel",
+    "currentStock": 3100,
+    "reorderPoint": 800,
+    "leadTimeDays": 80,
+    "supplierId": "SUP-VN-01",
+    "activePoIds": []
+  },
+  {
+    "skuId": "SKU-A004",
+    "name": "Kids Winter Puffer Coat",
+    "category": "apparel",
+    "currentStock": 220,
+    "reorderPoint": 500,
+    "leadTimeDays": 90,
+    "supplierId": "SUP-CN-15",
+    "activePoIds": ["PO-20240325"]
+  },
+  {
+    "skuId": "SKU-A005",
+    "name": "Athletic Compression Socks 6-Pack",
+    "category": "apparel",
+    "currentStock": 6200,
+    "reorderPoint": 2000,
+    "leadTimeDays": 60,
+    "supplierId": "SUP-BD-02",
+    "activePoIds": []
+  },
+  {
+    "skuId": "SKU-A006",
+    "name": "Waterproof Hiking Boots Size 9-13",
+    "category": "apparel",
+    "currentStock": 390,
+    "reorderPoint": 300,
+    "leadTimeDays": 85,
+    "supplierId": "SUP-VN-03",
+    "activePoIds": ["PO-20240412"]
+  },
+  {
+    "skuId": "SKU-A007",
+    "name": "Merino Wool Beanie",
+    "category": "apparel",
+    "currentStock": 150,
+    "reorderPoint": 400,
+    "leadTimeDays": 50,
+    "supplierId": "SUP-NZ-01",
+    "activePoIds": ["PO-20240403", "PO-20240421"]
+  },
+  {
+    "skuId": "SKU-H001",
+    "name": "Stainless Steel Cookware Set 10pc",
+    "category": "home goods",
+    "currentStock": 730,
+    "reorderPoint": 300,
+    "leadTimeDays": 55,
+    "supplierId": "SUP-CN-09",
+    "activePoIds": []
+  },
+  {
+    "skuId": "SKU-H002",
+    "name": "Memory Foam Mattress Topper Queen",
+    "category": "home goods",
+    "currentStock": 95,
+    "reorderPoint": 150,
+    "leadTimeDays": 45,
+    "supplierId": "SUP-CN-04",
+    "activePoIds": ["PO-20240416"]
+  },
+  {
+    "skuId": "SKU-H003",
+    "name": "Air Purifier HEPA H13",
+    "category": "home goods",
+    "currentStock": 410,
+    "reorderPoint": 200,
+    "leadTimeDays": 35,
+    "supplierId": "SUP-KR-05",
+    "activePoIds": ["PO-20240407"]
+  },
+  {
+    "skuId": "SKU-H004",
+    "name": "Bamboo Cutting Board Set 3pc",
+    "category": "home goods",
+    "currentStock": 1800,
+    "reorderPoint": 400,
+    "leadTimeDays": 30,
+    "supplierId": "SUP-CN-12",
+    "activePoIds": []
+  },
+  {
+    "skuId": "SKU-H005",
+    "name": "Smart LED Floor Lamp",
+    "category": "home goods",
+    "currentStock": 270,
+    "reorderPoint": 200,
+    "leadTimeDays": 40,
+    "supplierId": "SUP-CN-06",
+    "activePoIds": ["PO-20240409"]
+  },
+  {
+    "skuId": "SKU-H006",
+    "name": "Ceramic Non-Stick Frying Pan 12in",
+    "category": "home goods",
+    "currentStock": 560,
+    "reorderPoint": 350,
+    "leadTimeDays": 28,
+    "supplierId": "SUP-DE-05",
+    "activePoIds": []
+  },
+  {
+    "skuId": "SKU-H007",
+    "name": "Portable Clothes Steamer",
+    "category": "home goods",
+    "currentStock": 130,
+    "reorderPoint": 200,
+    "leadTimeDays": 32,
+    "supplierId": "SUP-CN-08",
+    "activePoIds": ["PO-20240417"]
   }
 ]
