@@ -1,0 +1,42 @@
+[
+  {
+    "sku": "CHIP-001",
+    "name": "Microcontroller Unit A",
+    "supplier": "Taiwan Semiconductor",
+    "stock_units": 1200,
+    "reorder_point": 500,
+    "lead_time_days": 45,
+    "origin_country": "TW",
+    "origin_port": "Kaohsiung"
+  },
+  {
+    "sku": "BATT-007",
+    "name": "Lithium Battery Pack 48V",
+    "supplier": "Shenzhen PowerCell",
+    "stock_units": 340,
+    "reorder_point": 400,
+    "lead_time_days": 30,
+    "origin_country": "CN",
+    "origin_port": "Shenzhen"
+  },
+  {
+    "sku": "SENS-042",
+    "name": "Pressure Sensor Module",
+    "supplier": "Stuttgart MicroTech",
+    "stock_units": 870,
+    "reorder_point": 200,
+    "lead_time_days": 21,
+    "origin_country": "DE",
+    "origin_port": "Hamburg"
+  },
+  {
+    "sku": "DISP-015",
+    "name": "7-inch TFT Display",
+    "supplier": "Seoul Display Corp",
+    "stock_units": 90,
+    "reorder_point": 150,
+    "lead_time_days": 28,
+    "origin_country": "KR",
+    "origin_port": "Busan"
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "name": "supply-chain-agent",
+  "version": "1.0.0",
+  "description": "AI agent for detecting and responding to supply chain disruptions",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "supply-chain",
+    "openrouter"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^12.9.0",
+    "chalk": "^5.6.2",
+    "dotenv": "^17.4.2",
+    "node-fetch": "^3.3.2",
+    "openai": "^6.34.0"
+  }
+}
