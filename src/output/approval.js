@@ -29,6 +29,22 @@ function printHistory() {
 export async function runApproval(result) {
   renderBrief(result);
 
+  // In non-interactive sessions (monitor mode, piped stdin) auto-defer so the
+  // loop is never blocked waiting for keyboard input.
+  if (!process.stdin.isTTY) {
+    logDecision(result.disruptionId, {
+      optionChosen: 'deferred',
+      costEstimateUsd: 0,
+      timeSavedDays: 0,
+      approvedByHuman: 0,
+      notes: 'Auto-deferred — non-interactive session (use --replay to process)',
+    });
+    console.log(chalk.yellow('\n  ⏸  Auto-deferred (non-interactive). Run --replay to review and approve.'));
+    printHistory();
+    console.log('');
+    return;
+  }
+
   const { disruptionId, reroutingOptions = [] } = result;
 
   // Build the prompt line

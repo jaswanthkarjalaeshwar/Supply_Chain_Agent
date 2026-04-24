@@ -143,17 +143,35 @@ export async function runAgent(triggerLocation, triggerEvent) {
   let iteration = 0;
   let finalText = '';
   const collectedResults = {};
+  const unknownToolHits = {}; // track consecutive "Unknown tool" failures per name
+
+  const callModel = async () => {
+    const MAX_RETRIES = 4;
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        return await client.chat.completions.create({
+          model: process.env.MODEL,
+          messages,
+          tools: TOOLS,
+          tool_choice: 'auto',
+        });
+      } catch (err) {
+        if (err.status === 429 && attempt < MAX_RETRIES) {
+          const wait = 20 * attempt; // 20 s, 40 s, 60 s
+          console.log(chalk.yellow(`  ⏳ Rate limited — waiting ${wait}s (attempt ${attempt}/${MAX_RETRIES})...`));
+          await new Promise((r) => setTimeout(r, wait * 1000));
+        } else {
+          throw err;
+        }
+      }
+    }
+  };
 
   while (iteration < MAX_ITERATIONS) {
     iteration++;
     console.log(chalk.dim(`\n[Iter ${iteration}/${MAX_ITERATIONS}] → model (${messages.length} msgs in context)`));
 
-    const response = await client.chat.completions.create({
-      model: process.env.MODEL,
-      messages,
-      tools: TOOLS,
-      tool_choice: 'auto',
-    });
+    const response = await callModel();
 
     const { message, finish_reason } = response.choices[0];
 
@@ -175,6 +193,7 @@ export async function runAgent(triggerLocation, triggerEvent) {
     }
 
     // Execute every tool call returned in this turn
+    let forceStop = false;
     for (const toolCall of message.tool_calls) {
       const name = toolCall.function.name;
       let args;
@@ -187,9 +206,22 @@ export async function runAgent(triggerLocation, triggerEvent) {
       const fn = TOOL_FUNCTIONS[name];
       let result;
       try {
-        result = fn ? await fn(args) : { error: `Unknown tool: ${name}` };
+        result = fn ? await fn(args) : {
+          error: `Unknown tool: "${name}". Valid tools: ${Object.keys(TOOL_FUNCTIONS).join(', ')}`,
+        };
       } catch (err) {
         result = { error: err.message };
+      }
+
+      // Guard against infinite loops caused by corrupted tool names
+      if (result.error?.startsWith('Unknown tool:')) {
+        unknownToolHits[name] = (unknownToolHits[name] ?? 0) + 1;
+        if (unknownToolHits[name] >= 2) {
+          console.log(chalk.red(`  ✗ "${name}" failed twice — forcing final response`));
+          forceStop = true;
+        }
+      } else {
+        delete unknownToolHits[name]; // reset on success
       }
 
       collectedResults[name] = result;
@@ -205,7 +237,10 @@ export async function runAgent(triggerLocation, triggerEvent) {
         tool_call_id: toolCall.id,
         content: JSON.stringify(result),
       });
+
+      if (forceStop) break;
     }
+    if (forceStop) break;
   }
 
   if (iteration >= MAX_ITERATIONS && !finalText) {
