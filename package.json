@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "web": "node src/web/server.js"
   },
   "keywords": [
     "ai",
@@ -20,6 +21,7 @@
     "better-sqlite3": "^12.9.0",
     "chalk": "^5.6.2",
     "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "node-fetch": "^3.3.2",
     "openai": "^6.34.0"
   }

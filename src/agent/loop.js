@@ -112,7 +112,7 @@ function buildFallback(location, event, toolResults) {
   };
 }
 
-export async function runAgent(triggerLocation, triggerEvent) {
+export async function runAgent(triggerLocation, triggerEvent, { onEvent } = {}) {
   if (!process.env.OPENROUTER_API_KEY) {
     throw new Error('OPENROUTER_API_KEY is not set — add it to .env');
   }
@@ -159,6 +159,7 @@ export async function runAgent(triggerLocation, triggerEvent) {
         if (err.status === 429 && attempt < MAX_RETRIES) {
           const wait = 20 * attempt; // 20 s, 40 s, 60 s
           console.log(chalk.yellow(`  ⏳ Rate limited — waiting ${wait}s (attempt ${attempt}/${MAX_RETRIES})...`));
+          onEvent?.('rate_limit', { message: `Rate limited — waiting ${wait}s (attempt ${attempt}/${MAX_RETRIES})` });
           await new Promise((r) => setTimeout(r, wait * 1000));
         } else {
           throw err;
@@ -183,6 +184,7 @@ export async function runAgent(triggerLocation, triggerEvent) {
     if (message.content) {
       const preview = message.content.slice(0, 300);
       console.log(chalk.dim(`  [thinking] ${preview}${message.content.length > 300 ? ' …' : ''}`));
+      onEvent?.('thinking', { text: preview + (message.content.length > 300 ? ' …' : '') });
     }
 
     // No tool calls → final answer
@@ -202,6 +204,7 @@ export async function runAgent(triggerLocation, triggerEvent) {
 
       console.log(chalk.bold.yellow(`\n  → TOOL  : ${name}`));
       console.log(chalk.yellow(`     args : ${JSON.stringify(args)}`));
+      onEvent?.('tool_call', { name, args });
 
       const fn = TOOL_FUNCTIONS[name];
       let result;
@@ -231,6 +234,7 @@ export async function runAgent(triggerLocation, triggerEvent) {
         chalk.green(`  ← RESULT: `) +
         chalk.dim(preview.length > 500 ? preview.slice(0, 500) + ' …' : preview),
       );
+      onEvent?.('tool_result', { name, preview: preview.slice(0, 200) });
 
       messages.push({
         role: 'tool',

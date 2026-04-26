@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supply Chain Agent</title>
+<style>
+:root {
+  --bg:       #0d1117;
+  --bg-card:  #161b22;
+  --bg-hover: #1c2128;
+  --bg-input: #0d1117;
+  --border:   #30363d;
+  --text:     #e6edf3;
+  --dim:      #8b949e;
+  --accent:   #58a6ff;
+  --high:     #f85149;
+  --medium:   #d29922;
+  --low:      #3fb950;
+  --approved: #3fb950;
+  --rejected: #f85149;
+  --deferred: #8b949e;
+  --air:      #58a6ff;
+  --sea:      #39c5cf;
+  --rail:     #bc8cff;
+  --mono: Consolas, 'Courier New', monospace;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  display: grid;
+  grid-template-rows: 48px 88px 1fr 210px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: #010409;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: .3px;
+}
+.brand-icon { color: var(--accent); font-size: 18px; }
+.header-right { display: flex; align-items: center; gap: 20px; }
+#clock { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; letter-spacing: .5px;
+  color: var(--dim);
+}
+.dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--low);
+  box-shadow: 0 0 6px var(--low);
+  transition: background .3s, box-shadow .3s;
+}
+.dot.offline { background: var(--high); box-shadow: 0 0 6px var(--high); }
+
+/* ── Stats ───────────────────────────────────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.stat-card {
+  background: var(--bg-card);
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: var(--mono);
+  color: var(--text);
+  letter-spacing: -1px;
+}
+.stat-label { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: .5px; }
+
+/* ── Main grid ───────────────────────────────────────────── */
+.main {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── List panel ──────────────────────────────────────────── */
+.list-panel {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.panel-title {
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--dim);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.icon-btn {
+  background: none;
+  border: none;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 4px;
+  border-radius: 4px;
+  transition: color .15s, background .15s;
+}
+.icon-btn:hover { color: var(--text); background: var(--bg-hover); }
+.disruption-list { overflow-y: auto; flex: 1; }
+
+.d-card {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background .1s;
+}
+.d-card:hover { background: var(--bg-hover); }
+.d-card.active { background: var(--bg-hover); border-left: 2px solid var(--accent); padding-left: 12px; }
+
+.card-row1 { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+.card-location { font-weight: 600; font-size: 13px; }
+.card-row2 { display: flex; justify-content: space-between; align-items: center; color: var(--dim); }
+.card-event { font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
+.card-time { font-size: 11px; font-family: var(--mono); flex-shrink: 0; }
+.card-row3 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+.po-count { font-size: 11px; color: var(--dim); }
+.card-btns { display: flex; gap: 6px; }
+
+/* ── Severity badges ─────────────────────────────────────── */
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+.badge.high   { background: #3d1818; color: var(--high);   border: 1px solid #5a2020; }
+.badge.medium { background: #2d2008; color: var(--medium); border: 1px solid #4a3510; }
+.badge.low    { background: #0d2818; color: var(--low);    border: 1px solid #1a4a2a; }
+
+/* ── Detail panel ────────────────────────────────────────── */
+.detail-panel { overflow-y: auto; padding: 0; }
+.detail-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--dim);
+}
+.empty-icon { font-size: 36px; opacity: .3; }
+
+.detail-inner { padding: 20px; }
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.detail-location { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.detail-event { color: var(--dim); margin-bottom: 4px; }
+.detail-ts { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--dim);
+  margin: 18px 0 8px;
+}
+
+/* ── Tables ──────────────────────────────────────────────── */
+.po-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.po-table th {
+  text-align: left;
+  padding: 6px 8px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--dim);
+  border-bottom: 1px solid var(--border);
+}
+.po-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid #1c2128;
+}
+.po-table tr:hover td { background: var(--bg-hover); }
+.risk-high   { color: var(--high); font-weight: 600; }
+.risk-medium { color: var(--medium); font-weight: 600; }
+.risk-low    { color: var(--low); }
+.mono { font-family: var(--mono); }
+.dim  { color: var(--dim); }
+.yellow { color: var(--medium); }
+
+/* ── Options ─────────────────────────────────────────────── */
+.options-grid { display: flex; flex-direction: column; gap: 8px; }
+.option-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+.option-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.option-num { color: var(--dim); font-family: var(--mono); font-size: 11px; }
+.option-forwarder { font-weight: 600; font-size: 13px; }
+.mode-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 3px;
+  letter-spacing: .3px;
+}
+.mode-air          { background: #0d2040; color: var(--air); }
+.mode-sea-express  { background: #0a2530; color: var(--sea); }
+.mode-rail         { background: #1a1030; color: var(--rail); }
+.option-meta { font-size: 12px; color: var(--dim); margin-bottom: 4px; }
+.option-meta strong { color: var(--text); }
+.option-notes { font-size: 11px; color: var(--dim); margin-bottom: 10px; line-height: 1.5; }
+.option-actions { display: flex; gap: 8px; }
+
+/* ── Decisions history ───────────────────────────────────── */
+.decision-row {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.dec-status { font-weight: 700; font-size: 11px; }
+.dec-approved { color: var(--approved); }
+.dec-rejected { color: var(--rejected); }
+.dec-deferred { color: var(--deferred); }
+.dec-chosen { color: var(--text); }
+.dec-cost { color: var(--low); font-family: var(--mono); }
+.dec-ts { color: var(--dim); font-family: var(--mono); font-size: 10px; margin-left: auto; }
+.dec-notes { width: 100%; color: var(--dim); font-size: 11px; }
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn {
+  border: none;
+  border-radius: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.btn:hover { opacity: .85; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn-approve { background: #1f4a2a; color: var(--low); border: 1px solid #2a6040; }
+.btn-reject  { background: #3d1818; color: var(--high); border: 1px solid #5a2020; }
+.btn-primary { background: var(--accent); color: #000; font-weight: 700; }
+.btn-ghost   { background: var(--bg-hover); color: var(--text); border: 1px solid var(--border); }
+
+/* ── Bottom bar ──────────────────────────────────────────── */
+.bottom-bar {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  background: #010409;
+  border-top: 1px solid var(--border);
+  overflow: hidden;
+}
+.bottom-controls {
+  padding: 14px 16px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.scan-btn {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .15s;
+  width: 100%;
+}
+.scan-btn:hover { opacity: .85; }
+.scan-btn:disabled { opacity: .4; cursor: not-allowed; }
+.location-select {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 5px;
+  padding: 5px 8px;
+  font-size: 12px;
+  width: 100%;
+}
+.bottom-hint { font-size: 11px; color: var(--dim); line-height: 1.4; }
+
+.log-panel { display: flex; flex-direction: column; overflow: hidden; }
+.log-header {
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--dim);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.log-tag {
+  background: var(--bg-hover);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 10px;
+}
+.log-output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.log-line { padding: 1px 0; }
+.log-start   { color: var(--accent); }
+.log-tool    { color: var(--medium); }
+.log-result  { color: var(--dim); padding-left: 12px; }
+.log-thinking{ color: var(--dim); font-style: italic; }
+.log-done    { color: var(--low); font-weight: 600; }
+.log-error   { color: var(--high); }
+.log-status  { color: var(--dim); }
+
+/* ── Empty / loading states ──────────────────────────────── */
+.loading-msg { padding: 24px; text-align: center; color: var(--dim); }
+.empty-note  { color: var(--dim); font-size: 12px; padding: 8px 0; }
+</style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────────────────── -->
+<header>
+  <div class="brand">
+    <span class="brand-icon">◈</span>
+    Supply Chain Agent
+  </div>
+  <div class="header-right">
+    <span id="clock"></span>
+    <div class="status-pill">
+      <div class="dot" id="statusDot"></div>
+      <span id="statusText">ONLINE</span>
+    </div>
+  </div>
+</header>
+
+<!-- ── Stats row ──────────────────────────────────────────────────────────── -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-value" id="s-disruptions">—</div>
+    <div class="stat-label">Total Disruptions</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="s-pos">—</div>
+    <div class="stat-label">POs at Risk</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="s-decisions">—</div>
+    <div class="stat-label">Decisions Made</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" id="s-port" style="font-size:14px;padding-top:6px">—</div>
+    <div class="stat-label">Top Affected Port</div>
+  </div>
+</div>
+
+<!-- ── Main ───────────────────────────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- Left: disruption list -->
+  <div class="list-panel">
+    <div class="panel-title">
+      Recent Disruptions
+      <button class="icon-btn" onclick="refreshData()" title="Refresh">↻</button>
+    </div>
+    <div id="disruptionList" class="disruption-list">
+      <div class="loading-msg">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Right: detail panel -->
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-empty">
+      <div class="empty-icon">◈</div>
+      <p>Select a disruption to view details</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Bottom bar ─────────────────────────────────────────────────────────── -->
+<div class="bottom-bar">
+  <div class="bottom-controls">
+    <button id="scanBtn" class="scan-btn" onclick="runScan()">▶ Run New Scan</button>
+    <select id="scanLocation" class="location-select">
+      <option>Port of Miami</option>
+      <option>Port of Los Angeles</option>
+      <option>Port of Rotterdam</option>
+    </select>
+    <div class="bottom-hint" id="scanHint">Triggers a live agent scan using all 5 tools. Results are saved to SQLite automatically.</div>
+  </div>
+  <div class="log-panel">
+    <div class="log-header">
+      Agent Log
+      <span class="log-tag" id="logTag">IDLE</span>
+    </div>
+    <div class="log-output" id="logOutput">
+      <div class="log-line log-status">— waiting for scan —</div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── State ────────────────────────────────────────────────────────────────────
+let activeId = null;
+let optionCache = {};   // id → freight options array
+let scanning   = false;
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  startClock();
+  refreshData();
+  setInterval(refreshData, 30_000);
+});
+
+// ── Clock ─────────────────────────────────────────────────────────────────────
+function startClock() {
+  const el = document.getElementById('clock');
+  const tick = () => {
+    el.textContent = new Date().toLocaleTimeString('en-US', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+  };
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ── Data loading ──────────────────────────────────────────────────────────────
+async function refreshData() {
+  await Promise.all([loadStats(), loadDisruptions()]);
+}
+
+async function loadStats() {
+  try {
+    const s = await fetchJSON('/api/stats');
+    set('s-disruptions', s.totalDisruptions);
+    set('s-pos',         s.totalPOsAtRisk);
+    set('s-decisions',   s.decisionsApproved + s.decisionsRejected + s.decisionsDeferred);
+    set('s-port',        (s.topPort || 'N/A').replace('Port of ', ''));
+    document.getElementById('statusDot').classList.remove('offline');
+    document.getElementById('statusText').textContent = 'ONLINE';
+  } catch {
+    document.getElementById('statusDot').classList.add('offline');
+    document.getElementById('statusText').textContent = 'OFFLINE';
+  }
+}
+
+async function loadDisruptions() {
+  try {
+    const list = await fetchJSON('/api/disruptions');
+    const el   = document.getElementById('disruptionList');
+
+    if (!list.length) {
+      el.innerHTML = '<div class="loading-msg">No disruptions yet.<br>Run a scan to get started.</div>';
+      return;
+    }
+
+    el.innerHTML = list.map(d => {
+      const ts   = fmtDate(d.detected_at);
+      const pos  = d.impactedPOs?.length ?? 0;
+      const sev  = d.severity ?? 'low';
+      return `
+        <div class="d-card${activeId === d.id ? ' active' : ''}" onclick="showDetail(${d.id})" data-id="${d.id}">
+          <div class="card-row1">
+            <span class="card-location">${d.location}</span>
+            <span class="badge ${sev}">${sev.toUpperCase()}</span>
+          </div>
+          <div class="card-row2">
+            <span class="card-event">${d.event_type}</span>
+            <span class="card-time">${ts}</span>
+          </div>
+          <div class="card-row3">
+            <span class="po-count">${pos} PO${pos !== 1 ? 's' : ''} affected</span>
+            <div class="card-btns">
+              <button class="btn btn-approve" onclick="event.stopPropagation(); quickApprove(${d.id})">Approve</button>
+              <button class="btn btn-reject"  onclick="event.stopPropagation(); quickReject(${d.id})">Reject</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Re-render detail if the active disruption was in the updated list
+    if (activeId && list.find(d => d.id === activeId)) {
+      showDetail(activeId, list);
+    }
+  } catch (e) {
+    console.error('loadDisruptions', e);
+  }
+}
+
+// ── Detail panel ──────────────────────────────────────────────────────────────
+async function showDetail(id, cachedList) {
+  activeId = id;
+
+  // Highlight card
+  document.querySelectorAll('.d-card').forEach(c =>
+    c.classList.toggle('active', parseInt(c.dataset.id) === id)
+  );
+
+  const [list, options] = await Promise.all([
+    cachedList ? Promise.resolve(cachedList) : fetchJSON('/api/disruptions'),
+    fetchOptions(id),
+  ]);
+
+  const d = list.find(x => x.id === id);
+  if (!d) return;
+
+  const panel = document.getElementById('detailPanel');
+  panel.innerHTML = `
+    <div class="detail-inner">
+      <div class="detail-header">
+        <div>
+          <div class="detail-location">${d.location}</div>
+          <div class="detail-event">${d.event_type}</div>
+          <div class="detail-ts">${fmtDate(d.detected_at)}</div>
+        </div>
+        <span class="badge ${d.severity} large">${(d.severity ?? '—').toUpperCase()}</span>
+      </div>
+
+      <div class="section-label">Impacted Purchase Orders</div>
+      ${renderPOTable(d.impactedPOs)}
+
+      <div class="section-label">Rerouting Options</div>
+      ${renderOptions(options, id)}
+
+      <div class="section-label">Decision History</div>
+      ${renderDecisions(d.decisions)}
+    </div>`;
+}
+
+function renderPOTable(pos) {
+  if (!pos?.length) return '<p class="empty-note">No impacted POs recorded for this disruption.</p>';
+  const rows = pos.map(p => `
+    <tr>
+      <td class="mono">${esc(p.po_id)}</td>
+      <td>${esc(p.sku_name ?? p.sku_id ?? '—')}</td>
+      <td class="dim">${esc(p.vessel_name ?? '—')}</td>
+      <td class="risk-${p.stockout_risk}">${(p.stockout_risk ?? '—').toUpperCase()}</td>
+      <td class="yellow">${p.estimated_delay_days ?? 0}d</td>
+    </tr>`).join('');
+  return `
+    <table class="po-table">
+      <thead><tr>
+        <th>PO ID</th><th>SKU Name</th><th>Vessel</th><th>Risk</th><th>Delay</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function renderOptions(options, dId) {
+  if (!options?.length) return '<p class="empty-note">No rerouting options available.</p>';
+  return `<div class="options-grid">${options.map((o, i) => `
+    <div class="option-card">
+      <div class="option-header">
+        <span class="option-num">[${i+1}]</span>
+        <span class="option-forwarder">${esc(o.forwarder)}</span>
+        <span class="mode-badge mode-${o.mode}">${esc(o.mode)}</span>
+      </div>
+      <div class="option-meta">
+        <strong>$${(o.costEstimateUsd ?? 0).toLocaleString()}</strong>
+        &nbsp;·&nbsp; ${o.transitDays ?? o.timeSavedDays ?? '?'} days
+        &nbsp;·&nbsp; ${((o.reliability ?? 0) * 100).toFixed(0)}% reliability
+      </div>
+      ${o.notes ? `<div class="option-notes">${esc(o.notes)}</div>` : ''}
+      <div class="option-actions">
+        <button class="btn btn-approve" onclick="approveOption(${dId}, ${i})">✓ Approve this option</button>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function renderDecisions(decisions) {
+  if (!decisions?.length) return '<p class="empty-note">No decisions recorded yet.</p>';
+  return decisions.map(d => {
+    const isApproved = d.approved_by_human === 1;
+    const isRejected = d.option_chosen === 'rejected';
+    const cls  = isApproved ? 'dec-approved' : isRejected ? 'dec-rejected' : 'dec-deferred';
+    const icon = isApproved ? '✓ APPROVED' : isRejected ? '✗ REJECTED' : '⏸ DEFERRED';
+    return `
+      <div class="decision-row">
+        <span class="dec-status ${cls}">${icon}</span>
+        <span class="dec-chosen">${esc(d.option_chosen)}</span>
+        ${d.cost_estimate_usd > 0 ? `<span class="dec-cost">$${d.cost_estimate_usd.toLocaleString()}</span>` : ''}
+        <span class="dec-ts">${fmtDate(d.decision_at)}</span>
+        ${d.notes ? `<div class="dec-notes">${esc(d.notes)}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+// ── Quick actions from list cards ─────────────────────────────────────────────
+async function quickApprove(id) {
+  const opts = await fetchOptions(id);
+  const top  = opts[0];
+  if (!top) { alert('No options available for this disruption.'); return; }
+  if (!confirm(`Approve: ${top.forwarder} (${top.mode}) — $${(top.costEstimateUsd ?? 0).toLocaleString()}?`)) return;
+  await postJSON(`/api/approve/${id}`, top);
+  await refreshData();
+  if (activeId === id) showDetail(id);
+}
+
+async function quickReject(id) {
+  const reason = prompt('Rejection reason:');
+  if (reason === null) return;
+  await postJSON(`/api/reject/${id}`, { reason });
+  await refreshData();
+  if (activeId === id) showDetail(id);
+}
+
+async function approveOption(dId, idx) {
+  const opt = optionCache[dId]?.[idx];
+  if (!opt) return;
+  if (!confirm(`Approve ${opt.forwarder} (${opt.mode}) — $${(opt.costEstimateUsd ?? 0).toLocaleString()}?`)) return;
+  await postJSON(`/api/approve/${dId}`, opt);
+  await refreshData();
+  showDetail(dId);
+}
+
+// ── Fetch options (cached) ────────────────────────────────────────────────────
+async function fetchOptions(id) {
+  if (!optionCache[id]) {
+    try { optionCache[id] = await fetchJSON(`/api/disruptions/${id}/options`); }
+    catch { optionCache[id] = []; }
+  }
+  return optionCache[id];
+}
+
+// ── Live scan (SSE) ───────────────────────────────────────────────────────────
+async function runScan() {
+  if (scanning) return;
+  scanning = true;
+
+  const btn = document.getElementById('scanBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Scanning…';
+  document.getElementById('logTag').textContent = 'RUNNING';
+
+  const location = document.getElementById('scanLocation').value;
+  const log = document.getElementById('logOutput');
+  log.innerHTML = '';
+
+  const appendLog = (text, cls = '') => {
+    const div = document.createElement('div');
+    div.className = `log-line ${cls}`;
+    div.textContent = text;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  };
+
+  appendLog(`▶ Starting scan — ${location}`, 'log-start');
+
+  try {
+    const resp = await fetch('/api/run-scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ location, event: 'disruption scan' }),
+    });
+
+    const reader  = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let   buf     = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+
+      const parts = buf.split('\n\n');
+      buf = parts.pop();
+
+      for (const chunk of parts) {
+        if (!chunk.trim()) continue;
+        const lines    = chunk.split('\n');
+        const typeLine = lines.find(l => l.startsWith('event:'));
+        const dataLine = lines.find(l => l.startsWith('data:'));
+        if (!typeLine || !dataLine) continue;
+
+        const type = typeLine.slice(6).trim();
+        let   data;
+        try { data = JSON.parse(dataLine.slice(5).trim()); } catch { continue; }
+
+        switch (type) {
+          case 'tool_call':
+            appendLog(`  → ${data.name}(${JSON.stringify(data.args || {}).slice(0, 70)}…)`, 'log-tool');
+            break;
+          case 'tool_result': {
+            const preview = data.preview ?? '';
+            appendLog(`  ← ${data.name}: ${preview.slice(0, 90)}${preview.length > 90 ? '…' : ''}`, 'log-result');
+            break;
+          }
+          case 'thinking':
+            if (data.text) appendLog(`  💭 ${data.text.slice(0, 100)}…`, 'log-thinking');
+            break;
+          case 'rate_limit':
+            appendLog(`  ⏳ ${data.message}`, 'log-status');
+            break;
+          case 'done':
+            appendLog(
+              `✓ Scan complete — ${(data.severity ?? '?').toUpperCase()} severity, ${data.poCount ?? 0} POs affected`,
+              'log-done'
+            );
+            optionCache = {};  // bust options cache so new disruption gets fresh options
+            await refreshData();
+            if (data.disruptionId) showDetail(data.disruptionId);
+            break;
+          case 'error':
+            appendLog(`✗ ${data.message}`, 'log-error');
+            break;
+        }
+      }
+    }
+  } catch (e) {
+    appendLog(`✗ Connection error: ${e.message}`, 'log-error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '▶ Run New Scan';
+  document.getElementById('logTag').textContent = 'IDLE';
+  scanning = false;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+async function fetchJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+async function postJSON(url, body) {
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return r.json();
+}
+function set(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val ?? '—';
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleString('en-US', {
+      month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  } catch { return iso; }
+}
+function esc(s) {
+  if (s == null) return '—';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>
